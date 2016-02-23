@@ -28,8 +28,6 @@
  */
 
 #ifndef _SYNCH_H_
- // needed for global thread var
- #include <thread.h>
 #define _SYNCH_H_
 
 /*
@@ -38,7 +36,7 @@
 #include <spinlock.h>
 
 
-extern struct thread *currentThread
+extern struct thread *currentThread;
 /*
  * Dijkstra-style semaphore.
  *
@@ -78,8 +76,8 @@ struct lock {
         char *lk_name;
         // add what you need here
         // (don't forget to mark things volatile as needed)
-        int numHeld
-        struct thread *holder
+        int numHeld;
+        struct thread *holder;
 };
 
 struct lock *lock_create(const char *name);

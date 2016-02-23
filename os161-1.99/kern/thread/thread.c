@@ -817,18 +817,26 @@ thread_yield(void)
 	thread_switch(S_READY, NULL);
 }
 
-
+/*
+ * SLeep and let another thread run
+ */
+ void
+ thread_sleep(void) {
+ 	thread_switch(S_SLEEP, NULL);
+ }
 
 
 /*
  * Wake one thread
  */
 void
-thread_wakesingle(const void *addr)
+thread_wakesingle(void *addr)
 {
 	int i;
 	int result;
 
+	// iterate through all the threads that are asleep
+	// and wake the single one that was specified by the param
 	for (i=0;i<array_getnum(sleepers); i++) {
 		struct thread *t = array_getguy(sleepers, i);
 
@@ -843,6 +851,22 @@ thread_wakesingle(const void *addr)
 
 
 
+/*
+ * Wake all threads sleeping on addr
+ * literally the same as  wakesingle
+ * except we don't stop once we find one to wake up
+ */
+ void
+ thread_wakeall(void *addr) {
+ 	int i;
+ 	int result;
+ 	for (i=0;i<array_getnum(sleepers);i++) {
+			array_remove(sleepers, i);
+			result = make_runnable(t);
+			assert(result==0);
+			i--;
+ 	}
+ }
 ////////////////////////////////////////////////////////////
 
 /*

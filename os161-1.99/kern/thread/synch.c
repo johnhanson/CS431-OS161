@@ -39,6 +39,7 @@
 #include <thread.h>
 #include <current.h>
 #include <synch.h>
+#include <spl.h>
 
 ////////////////////////////////////////////////////////////
 //
@@ -176,8 +177,8 @@ lock_destroy(struct lock *lock)
         KASSERT(lock != NULL);
 
         // add stuff here as needed
-        kfree(lock->numHeld);
-        kfree(lock->holder)
+        // don't need to do lock->numHold since that's an int
+        kfree(lock->holder);
         kfree(lock->lk_name);
         kfree(lock);
 }
@@ -185,13 +186,13 @@ lock_destroy(struct lock *lock)
 void
 lock_acquire(struct lock *lock)
 {
-    assert(lock != NULL);
-    assert(in_interrupt == 0);
+    KASSERT(lock != NULL);
+//    KASSERT(in_interrupt == 0);
         // Write this
     int splHigh = splhigh();
-    assert(!lock_do_i_hold(lock));
+    KASSERT(!lock_do_i_hold(lock));
     while (lock->numHeld) {
-        thread_sleep(lock);
+        thread_sleep();
     }
     lock->holder = curthread;
     lock->numHeld = 1;
@@ -205,14 +206,14 @@ void
 lock_release(struct lock *lock)
 {
         // Write this
-    assert(lock != NULL);
-    assert(lock->numHeld);
-    assert(lock_do_i_hold(lock));
+    KASSERT(lock != NULL);
+    KASSERT(lock->numHeld);
+    KASSERT(lock_do_i_hold(lock));
 
-    int splHigh = splhigh;
+    int splHigh = splhigh();
     lock->numHeld = 0;
     lock->holder = NULL;
-    thread_wakeup(lock);
+    thread_wakeall(lock);
     splx(splHigh);
 
 
@@ -224,7 +225,7 @@ bool
 lock_do_i_hold(struct lock *lock)
 {
         // Write this
-    assert(lock != NULL);
+    KASSERT(lock != NULL);
     if (!lock->numHeld){
         return false;
     }
@@ -284,7 +285,7 @@ cv_wait(struct cv *cv, struct lock *lock)
     int splHigh;
     lock_release(lock);
     splHigh = splhigh();
-    thread_sleep(cv);
+    thread_sleep();
     splx(splHigh);
     lock_acquire(lock);
 }
@@ -296,7 +297,7 @@ cv_signal(struct cv *cv, struct lock *lock)
 //	(void)cv;    // suppress warning until code gets written
 //	(void)lock;  // suppress warning until code gets written
     int splHigh = splhigh();
-    thread_wakesingle(cv);
+    thread_wakesingle((void*) cv);
     splx(splHigh);
 }
 
@@ -307,6 +308,6 @@ cv_broadcast(struct cv *cv, struct lock *lock)
 //	(void)cv;    // suppress warning until code gets written
 //	(void)lock;  // suppress warning until code gets written
     int splHigh = splhigh();
-    thread_wakeup(cv);
+    thread_wakeall(cv);
     splx(splHigh);
 }

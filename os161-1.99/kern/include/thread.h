@@ -39,12 +39,11 @@
 #include <array.h>
 #include <spinlock.h>
 #include <threadlist.h>
-
+#include <synch.h>
 struct cpu;
 
 /* get machine-dependent defs */
 #include <machine/thread.h>
-
 
 /* Size of kernel stacks; must be power of 2 */
 #define STACK_SIZE 4096
@@ -158,10 +157,21 @@ void thread_exit(void);
 void thread_yield(void);
 
 /*
+ * Sleep a thread and let others run
+ */
+void thread_sleep(void);
+/*
  * only wake one therad
  */
-void thread_wakesingle(void);
+void thread_wakesingle(void *addr);
 
+
+/*
+ * Wake all threads sleeping on addr
+ * literally the same as  wakesingle
+ * except we don't stop once we find one to wake up
+ */
+ void thread_wakeall(void *addr);
 
 /*
  * Reshuffle the run queue. Called from the timer interrupt.
@@ -173,6 +183,5 @@ void schedule(void);
  * timer interrupt.
  */
 void thread_consider_migration(void);
-
 
 #endif /* _THREAD_H_ */
