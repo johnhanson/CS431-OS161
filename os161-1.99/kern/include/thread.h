@@ -158,6 +158,12 @@ void thread_exit(void);
 void thread_yield(void);
 
 /*
+ * only wake one therad
+ */
+void thread_wakesingle(void);
+
+
+/*
  * Reshuffle the run queue. Called from the timer interrupt.
  */
 void schedule(void);
